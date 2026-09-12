@@ -1,6 +1,6 @@
 import React, { useState, useContext } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { AuthContext } from "../App";
+import { AuthContext } from "../context.jsx";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -24,27 +24,37 @@ export default function Login() {
         login(data.user, data.token);
         navigate("/");
       } else {
-        setError(data.message || "Login details ghalat hain.");
+        setError(data.message || "Invalid authentication credentials.");
       }
     } catch (err) {
-      setError("Server se rabta nahi ho paa raha.");
+      setError("Unable to establish remote connection with server endpoints.");
     }
   };
 
   return (
-    <div className="max-w-md mx-auto mt-12 bg-white p-8 rounded-2xl shadow-lg border border-gray-100">
-      <h2 className="text-3xl font-bold text-gray-800 text-center mb-6">
-        Khush Amdeed 👋
+    <div className="max-w-md mx-auto mt-12 bg-white p-8 rounded-3xl shadow-xl border border-slate-100 text-left">
+      <Link
+        to="/"
+        className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-500 hover:text-emerald-700 uppercase tracking-widest mb-4 transition"
+      >
+        ← Back to Home
+      </Link>
+      <h2 className="text-3xl font-black text-slate-900 text-center mb-2 tracking-tight">
+        Welcome Back
       </h2>
+      <p className="text-slate-400 text-xs text-center mb-6 font-medium">
+        Please sign in with your credentials to manage allocations.
+      </p>
+
       {error && (
-        <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-xl mb-4 text-sm text-center">
+        <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-xl mb-4 text-xs font-semibold text-center">
           {error}
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="space-y-5">
+      <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label className="block text-gray-700 font-medium mb-2">
+          <label className="block text-slate-700 text-xs font-bold uppercase tracking-wider mb-2">
             Email Address
           </label>
           <input
@@ -52,12 +62,12 @@ export default function Login() {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
-            className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition"
+            className="w-full px-4 py-3 rounded-xl border border-slate-200 outline-none text-sm font-medium focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition"
             placeholder="example@mail.com"
           />
         </div>
         <div>
-          <label className="block text-gray-700 font-medium mb-2">
+          <label className="block text-slate-700 text-xs font-bold uppercase tracking-wider mb-2">
             Password
           </label>
           <input
@@ -65,24 +75,24 @@ export default function Login() {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
-            className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition"
+            className="w-full px-4 py-3 rounded-xl border border-slate-200 outline-none text-sm font-medium focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition"
             placeholder="••••••••"
           />
         </div>
         <button
           type="submit"
-          className="w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 rounded-xl shadow-md shadow-orange-200 transition duration-200"
+          className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-emerald-100 transition tracking-wide text-sm cursor-pointer"
         >
           Sign In
         </button>
       </form>
-      <p className="text-center text-gray-500 mt-6 text-sm">
-        Account nahi hai?{" "}
+      <p className="text-center text-slate-400 mt-6 text-xs font-medium">
+        New to the platform?{" "}
         <Link
           to="/signup"
-          className="text-orange-500 font-bold hover:underline"
+          className="text-emerald-600 font-bold hover:underline ml-1"
         >
-          Naya banayein
+          Sign Up here
         </Link>
       </p>
     </div>

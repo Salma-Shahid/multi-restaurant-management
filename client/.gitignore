@@ -1,4 +1,10 @@
-# Logs
+# Dependencies
+node_modules/
+/.pnp
+.pnp.js
+
+# Testing & Logs
+/coverage
 logs
 *.log
 npm-debug.log*
@@ -7,10 +13,19 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-node_modules
-dist
-dist-ssr
-*.local
+# Production & Builds
+dist/
+dist-ssr/
+build/
+*.tsbuildinfo
+
+# Environment Variables (Crucial for Security)
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.env.*
 
 # Editor directories and files
 .vscode/*

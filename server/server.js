@@ -26,6 +26,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/restaurants", restaurantRoutes);
 app.use("/api/ai", aiRoutes);
 app.use("/api/bookings", bookingRoutes);
+app.use("/uploads", express.static("uploads"));
 
 // Test Route
 app.get("/", (req, res) => {

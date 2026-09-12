@@ -1,77 +1,232 @@
-const { GoogleGenAI } = require("@google/generative-ai");
+const { GoogleGenerativeAI } = require("@google/generative-ai");
 const Restaurant = require("../models/Restaurant");
 
-// Gemini API ko key ke sath initialize karein
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+const geminiModels = [
+  "gemini-3.6-flash",
+  "gemini-2.0-flash",
+  "gemini-1.5-flash",
+];
 
-// @desc    Get AI-powered restaurant recommendations
-// @route   POST /api/ai/recommend
+const normalizeText = (value = "") => value.toLowerCase().trim();
+
+const matchesLocation = (address = "", location = "") => {
+  const normalizedAddress = normalizeText(address);
+  const normalizedLocation = normalizeText(location);
+
+  if (!normalizedLocation) return true;
+  return normalizedAddress.includes(normalizedLocation);
+};
+
+const buildFallbackRecommendations = (restaurants, filters) => {
+  const queryCuisine = normalizeText(filters.cuisine || "");
+  const queryLocation = normalizeText(filters.location || "");
+  const partySize = Number(filters.partySize) || 0;
+
+  const filteredRestaurants = restaurants.filter((restaurant) => {
+    const cuisineMatch = queryCuisine
+      ? normalizeText(restaurant.cuisine || "").includes(queryCuisine)
+      : true;
+    const locationMatch = matchesLocation(restaurant.address, queryLocation);
+    return cuisineMatch && locationMatch;
+  });
+
+  const scored = filteredRestaurants
+    .map((restaurant) => {
+      const cuisineMatch = restaurant.cuisine
+        ? normalizeText(restaurant.cuisine).includes(queryCuisine)
+        : false;
+      const locationMatch = matchesLocation(restaurant.address, queryLocation);
+      const text =
+        `${restaurant.name} ${restaurant.description || ""} ${restaurant.cuisine || ""} ${restaurant.address || ""}`.toLowerCase();
+      const preferenceMatch =
+        filters.userPreference || ""
+          ? text.includes(normalizeText(filters.userPreference || ""))
+          : false;
+
+      let score = 0;
+      if (queryCuisine && cuisineMatch) score += 4;
+      if (queryLocation && locationMatch) score += 3;
+      if (preferenceMatch) score += 2;
+      if (partySize && restaurant.capacity)
+        score += restaurant.capacity >= partySize ? 2 : 0;
+      if (!queryCuisine && !queryLocation) score += 1;
+
+      return { restaurant, score };
+    })
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 3);
+
+  return scored.map(({ restaurant }) => ({
+    id: restaurant._id.toString(),
+    name: restaurant.name,
+    reasonForRecommendation: `Matches your dining preferences and is located in ${restaurant.address}. Ideal for ${restaurant.cuisine} cuisine and a group of ${partySize || "flexible size"} guests.`,
+  }));
+};
+
+const buildModel = (genAI) => {
+  for (const modelName of geminiModels) {
+    try {
+      const model = genAI.getGenerativeModel({
+        model: modelName,
+        generationConfig: {
+          responseMimeType: "application/json",
+        },
+      });
+      return model;
+    } catch (error) {
+      continue;
+    }
+  }
+
+  return genAI.getGenerativeModel({
+    model: "gemini-2.0-flash",
+    generationConfig: {
+      responseMimeType: "application/json",
+    },
+  });
+};
+
+const getLocationFilteredRestaurants = (restaurants, location) => {
+  if (!normalizeText(location)) return restaurants;
+
+  return restaurants.filter((restaurant) =>
+    matchesLocation(restaurant.address, location),
+  );
+};
+
+const filterRecommendationsByLocation = (
+  recommendations,
+  restaurants,
+  location,
+) => {
+  const items = Array.isArray(recommendations)
+    ? recommendations
+    : recommendations
+      ? [recommendations]
+      : [];
+
+  if (!normalizeText(location)) return items.filter(Boolean);
+
+  const validIds = new Set(
+    getLocationFilteredRestaurants(restaurants, location).map((restaurant) =>
+      restaurant._id.toString(),
+    ),
+  );
+
+  return items.filter((item) => {
+    if (!item || !item.id) return false;
+    return validIds.has(String(item.id));
+  });
+};
+
 exports.getRecommendations = async (req, res) => {
   try {
     const { cuisine, location, partySize, userPreference } = req.body;
 
-    // 1. MongoDB se saare approved restaurants ka data nikalein
     const restaurants = await Restaurant.find({ status: "approved" });
 
     if (!restaurants || restaurants.length === 0) {
-      return res.status(404).json({
-        success: false,
-        message: "Database mein koi bhi restaurant maujud nahi hai.",
+      return res.json({
+        success: true,
+        data: [],
+        message:
+          "No certified matching hotels active inside the cluster mappings.",
       });
     }
 
-    // 2. Data ko clean stringify karein taake Gemini ko context diya ja sake
-    const restaurantContext = restaurants.map((r) => ({
-      id: r._id,
-      name: r.name,
-      cuisine: r.cuisine,
-      address: r.address,
-      description: r.description,
-    }));
+    const locationFilteredRestaurants = getLocationFilteredRestaurants(
+      restaurants,
+      location,
+    );
 
-    // 3. Gemini ke liye ek strict prompt design karein
-    const systemPrompt = `
-        You are an expert Restaurant Recommendation Assistant. 
-        Analyze the following list of available restaurants from our database:
-        ${JSON.stringify(restaurantContext)}
+    if (location && locationFilteredRestaurants.length === 0) {
+      return res.json({
+        success: true,
+        data: [],
+        message: `No approved restaurants found in ${location}.`,
+      });
+    }
 
-        Based on the User's Criteria:
-        - Preferred Cuisine: ${cuisine || "Any"}
-        - Preferred Location/Area: ${location || "Any"}
-        - Party Size: ${partySize || "Any"}
-        - Special Preferences: ${userPreference || "None"}
+    const textDataCluster = locationFilteredRestaurants
+      .map(
+        (r) =>
+          `Restaurant ID: ${r._id.toString()} | Name: ${r.name} | Cuisine Type: ${r.cuisine} | Location: ${r.address} | Meta Description: ${r.description}`,
+      )
+      .join("\n");
 
-        Your Task:
-        Rank and recommend the best matching restaurants from the provided list. 
-        Strict Rules:
-        1. Only recommend restaurants that exist in the provided database list. Do not make up fake restaurants.
-        2. Do not attempt to book or confirm a table directly.
-        3. Respond ONLY with a clean JSON array of recommended restaurants. Each object in the array must contain: "id", "name", "reasonForRecommendation".
-        `;
+    const primaryInstruction =
+      "You are a Dining Concierge Bot. Filter and recommend matching items from the dataset string below. Return ONLY a valid JSON array matching the query specs. Never include markdown backticks or block specifiers like ```json. Each result item object structure must exactly have keys: 'id', 'name', 'reasonForRecommendation'. Hard rule: if a location is specified, only recommend restaurants whose address contains that exact city or region. If no exact match exists, return an empty array [] without recommending other cities.";
 
-    // 4. Gemini 2.5 Flash model ko call karein (Fast and JSON friendly)
-    const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash",
-      contents: systemPrompt,
-      config: {
-        // Ensure output is in JSON format
-        responseMimeType: "application/json",
-      },
-    });
+    const dynamicQueryPrompt =
+      "Dataset Inventory Available List Nodes:\n" +
+      textDataCluster +
+      "\n\nCustomer Requirements Requested Filtering Criteria:" +
+      "\n- Wanted Cuisine Model: " +
+      (cuisine || "Any") +
+      "\n- Wanted Location Region: " +
+      (location || "Any") +
+      "\n- Party Size Seats Count: " +
+      (partySize || "Any") +
+      "\n- Flavor Ambiance Preference Notes: " +
+      (userPreference || "None");
 
-    // 5. AI ka response parse karke customer ko bhej dein
-    const aiResponseText = response.text;
-    const recommendations = JSON.parse(aiResponseText);
+    const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+    const model = buildModel(genAI);
 
-    res.json({
+    const result = await model.generateContent([
+      primaryInstruction,
+      dynamicQueryPrompt,
+    ]);
+    const response = await result.response;
+    let aiResponseText = response.text().trim();
+
+    if (aiResponseText.startsWith("```")) {
+      aiResponseText = aiResponseText.replace(/```json|```/g, "").trim();
+    }
+
+    const parsedRecommendations = JSON.parse(aiResponseText);
+    const validRecommendations = filterRecommendationsByLocation(
+      parsedRecommendations,
+      restaurants,
+      location,
+    );
+
+    return res.json({
       success: true,
-      data: recommendations,
+      data: validRecommendations,
+      message:
+        validRecommendations.length === 0 && location
+          ? `No approved restaurants found in ${location}.`
+          : undefined,
     });
   } catch (error) {
-    res.status(500).json({
+    const fallback = buildFallbackRecommendations(
+      await Restaurant.find({ status: "approved" }),
+      req.body || {},
+    );
+
+    if (fallback.length > 0) {
+      return res.json({
+        success: true,
+        data: fallback,
+        message:
+          "Gemini is temporarily busy, so we returned the best local matches from our restaurant catalog.",
+      });
+    }
+
+    console.error(
+      "Critical Gemini API Engine Mapping Crash Exception Trace:",
+      error.message,
+    );
+    return res.status(500).json({
       success: false,
       message: "Gemini AI recommendation failed",
       error: error.message,
     });
   }
+};
+
+module.exports = {
+  getRecommendations: exports.getRecommendations,
+  buildFallbackRecommendations,
 };

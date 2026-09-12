@@ -3,7 +3,9 @@ const router = express.Router();
 const { getRecommendations } = require("../controllers/aiController");
 const { protect } = require("../middleware/auth");
 
-// Sirf logged-in customers hi recommendations le sakte hain
+// @route   POST /api/ai/recommend
+// @desc    Get AI-based recommendations for restaurants or dishes
+// @access  Private
 router.post("/recommend", protect, getRecommendations);
 
 module.exports = router;

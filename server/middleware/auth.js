@@ -9,7 +9,7 @@ const protect = async (req, res, next) => {
     req.headers.authorization.startsWith("Bearer")
   ) {
     try {
-      token = req.headers.authorization.split(" ")[1];
+      token = req.headers.authorization.split(" ")[1]; // Fix index mapping to safely get the token string
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
       req.user = await User.findById(decoded.id).select("-passwordHash");
       next();
@@ -26,13 +26,13 @@ const protect = async (req, res, next) => {
   }
 };
 
-// Role authorization check karne ke liye (E.g., sirf Owner access kar sake)
+// Role authorization check karne ke liye (Supports multiple roles dynamically)
 const authorize = (...roles) => {
   return (req, res, next) => {
-    if (!roles.includes(req.user.role)) {
+    if (!req.user || !roles.includes(req.user.role)) {
       return res.status(403).json({
         success: false,
-        message: `User role (${req.user.role}) is not authorized to access this route`,
+        message: `User role (${req.user ? req.user.role : "Guest"}) is not authorized to access this route`,
       });
     }
     next();

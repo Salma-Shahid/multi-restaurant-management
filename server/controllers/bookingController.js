@@ -1,4 +1,5 @@
 const Booking = require("../models/Booking");
+const Restaurant = require("../models/Restaurant");
 const Table = require("../models/Table");
 
 // @desc    Create a new table booking (Strict Overlap Prevention)
@@ -14,27 +15,27 @@ exports.createBooking = async (req, res) => {
       endTime,
       notes,
     } = req.body;
-    const customerId = req.user.id; // JWT Token se milega
+    const customerId = req.user.id; //get id from JWT Token
 
-    // 1. Pehle check karein ke kya table actual mein exist karta hai aur active hai
+    // 1: Check if the table exists and is active
     const table = await Table.findById(tableId);
     if (!table || !table.isActive) {
       return res.status(404).json({
         success: false,
-        message: "Table maujud nahi hai ya active nahi hai",
+        message: "Table not found or not active for booking.",
       });
     }
 
-    // 2. Check karein ke table ki capacity party size ke mutabiq sahi hai ya nahi
+    // 2.Do Check that party size is not exceeding table capacity
     if (table.capacity < partySize) {
       return res.status(400).json({
         success: false,
-        message: `Yeh table chota hai. Is table ki capacity sirf ${table.capacity} logo ki hai.`,
+        message: `This table can only accommodate ${table.capacity} guests.`,
       });
     }
 
     // 3. STRICT DOUBLE-BOOKING CHECK (Overlapping Slots Logic)
-    // Condition: Agar naya slot pehle se booked slot ke darmiyan overlap kare
+    // Condition: If new booking's startTime < existing booking's endTime AND new booking's endTime > existing booking's startTime, then it's an overlap.
     // Overlap mathematical condition: (RequestedStartTime < ExistingEndTime) AND (RequestedEndTime > ExistingStartTime)
     const overlappingBooking = await Booking.findOne({
       tableId: tableId,
@@ -47,11 +48,11 @@ exports.createBooking = async (req, res) => {
       return res.status(409).json({
         success: false,
         message:
-          "Conflict! Yeh table is time slot ke liye pehle se book ho chuka hai. Khas taur par koi doosra table ya time select karein.",
+          "Conflict! This table is already booked for the selected time slot. Please choose a different table or time.",
       });
     }
 
-    // 4. Agar koi overlap nahi mila, toh booking request save karein
+    // 4. if everything is valid, create the booking
     const newBooking = await Booking.create({
       customerId,
       restaurantId,
@@ -61,21 +62,21 @@ exports.createBooking = async (req, res) => {
       startTime,
       endTime,
       notes,
-      status: "pending", // Initial status owner ki approval ke liye pending hoga
+      status: "pending", // Initial status is pending,approval of admin required
     });
 
     res.status(201).json({
       success: true,
       data: newBooking,
       message:
-        "Booking request successfully save ho gayi hai. Owner ki approval ka intezar karein.",
+        "Booking request is successfully saved. wait for Owner approval.",
     });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
 };
 
-// @desc    Get user's personal bookings (Customers ke liye)
+// @desc    Get user's personal bookings (for customers)
 // @route   GET /api/bookings/my-bookings
 exports.getCustomerBookings = async (req, res) => {
   try {
@@ -88,7 +89,7 @@ exports.getCustomerBookings = async (req, res) => {
   }
 };
 
-// @desc    Get all bookings for a restaurant (Owner ke liye)
+// @desc    Get all bookings for a restaurant (only for the restaurant owner)
 // @route   GET /api/bookings/restaurant/:restaurantId
 exports.getRestaurantBookings = async (req, res) => {
   try {
@@ -108,6 +109,7 @@ exports.getRestaurantBookings = async (req, res) => {
 exports.updateBookingStatus = async (req, res) => {
   try {
     const { status } = req.body; // 'confirmed' ya 'cancelled' ya 'completed'
+    const currentUserId = req.user?._id?.toString() || req.user?.id?.toString();
 
     if (!["confirmed", "cancelled", "completed"].includes(status)) {
       return res
@@ -119,17 +121,70 @@ exports.updateBookingStatus = async (req, res) => {
     if (!booking) {
       return res
         .status(404)
-        .json({ success: false, message: "Booking nahi mili" });
+        .json({ success: false, message: "Booking not found" });
     }
 
-    // Status update karein
+    const restaurant = await Restaurant.findById(booking.restaurantId);
+    if (!restaurant) {
+      return res.status(404).json({
+        success: false,
+        message: "Restaurant attached to this booking was not found.",
+      });
+    }
+
+    // only restaurant owner can update the booking status
+    if (restaurant.ownerId?.toString() !== currentUserId) {
+      return res.status(401).json({
+        success: false,
+        message: "You are not the owner of this restaurant.",
+      });
+    }
+
+    const table = await Table.findById(booking.tableId);
+    if (!table) {
+      return res.status(404).json({
+        success: false,
+        message: "Table attached to this booking was not found.",
+      });
+    }
+
+    const capacity = Number(table.capacity) || 0;
+    let seatsLeft = Number(table.availableSeats ?? capacity);
+    if (!Number.isFinite(seatsLeft) || seatsLeft <= 0) {
+      seatsLeft = capacity;
+    }
+
+    const previousStatus = booking.status;
+
+    if (status === "confirmed" && previousStatus !== "confirmed") {
+      if (seatsLeft < booking.partySize) {
+        return res.status(400).json({
+          success: false,
+          message: `Not enough seats left on this table. Available seats: ${Math.max(0, seatsLeft)}`,
+        });
+      }
+
+      seatsLeft = Math.max(0, seatsLeft - booking.partySize);
+      table.availableSeats = seatsLeft;
+    }
+
+    if (status === "cancelled" && previousStatus === "confirmed") {
+      seatsLeft = Math.min(capacity, seatsLeft + booking.partySize);
+      table.availableSeats = seatsLeft;
+    }
+
+    if (status === "completed" && previousStatus === "confirmed") {
+      table.availableSeats = Math.min(capacity, seatsLeft);
+    }
+
     booking.status = status;
+    await table.save();
     await booking.save();
 
     res.json({
       success: true,
       data: booking,
-      message: `Booking status successfully ${status} ho gaya hai.`,
+      message: `Booking status is successfully ${status} updated.`,
     });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });

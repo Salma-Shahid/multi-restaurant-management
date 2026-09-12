@@ -8,6 +8,12 @@ const TableSchema = new mongoose.Schema({
   },
   tableNumber: { type: String, required: true },
   capacity: { type: Number, required: true },
+  availableSeats: {
+    type: Number,
+    default: function () {
+      return Number(this.capacity) || 0;
+    },
+  },
   isActive: { type: Boolean, default: true },
   createdAt: { type: Date, default: Date.now },
 });
