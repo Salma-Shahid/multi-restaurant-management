@@ -1,5 +1,11 @@
 require("dotenv").config();
 
+// Local DNS fix for MongoDB Atlas SRV lookup
+if (process.env.NODE_ENV !== "production") {
+  const dns = require("dns");
+  dns.setServers(["8.8.8.8", "8.8.4.4"]);
+}
+
 const express = require("express");
 const cors = require("cors");
 const connectDB = require("./config/db.js");
@@ -31,7 +37,7 @@ app.get("/", (req, res) => {
   res.send("Multi-Restaurant Table Booking API Running...");
 });
 
-// Local development support
+// Local development server listener
 if (process.env.NODE_ENV !== "production") {
   const PORT = process.env.PORT || 5000;
   app.listen(PORT, () => {
