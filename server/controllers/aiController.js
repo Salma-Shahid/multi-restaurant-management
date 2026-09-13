@@ -1,11 +1,8 @@
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 const Restaurant = require("../models/Restaurant");
 
-const geminiModels = [
-  "gemini-3.6-flash",
-  "gemini-2.0-flash",
-  "gemini-1.5-flash",
-];
+// Valid Gemini models
+const PRIMARY_MODEL = "gemini-1.5-flash";
 
 const normalizeText = (value = "") => value.toLowerCase().trim();
 
@@ -36,8 +33,9 @@ const buildFallbackRecommendations = (restaurants, filters) => {
         ? normalizeText(restaurant.cuisine).includes(queryCuisine)
         : false;
       const locationMatch = matchesLocation(restaurant.address, queryLocation);
-      const text =
-        `${restaurant.name} ${restaurant.description || ""} ${restaurant.cuisine || ""} ${restaurant.address || ""}`.toLowerCase();
+      const text = `${restaurant.name} ${restaurant.description || ""} ${
+        restaurant.cuisine || ""
+      } ${restaurant.address || ""}`.toLowerCase();
       const preferenceMatch =
         filters.userPreference || ""
           ? text.includes(normalizeText(filters.userPreference || ""))
@@ -59,31 +57,10 @@ const buildFallbackRecommendations = (restaurants, filters) => {
   return scored.map(({ restaurant }) => ({
     id: restaurant._id.toString(),
     name: restaurant.name,
-    reasonForRecommendation: `Matches your dining preferences and is located in ${restaurant.address}. Ideal for ${restaurant.cuisine} cuisine and a group of ${partySize || "flexible size"} guests.`,
+    reasonForRecommendation: `Matches your dining preferences and is located in ${restaurant.address}. Ideal for ${
+      restaurant.cuisine
+    } cuisine and a group of ${partySize || "flexible size"} guests.`,
   }));
-};
-
-const buildModel = (genAI) => {
-  for (const modelName of geminiModels) {
-    try {
-      const model = genAI.getGenerativeModel({
-        model: modelName,
-        generationConfig: {
-          responseMimeType: "application/json",
-        },
-      });
-      return model;
-    } catch (error) {
-      continue;
-    }
-  }
-
-  return genAI.getGenerativeModel({
-    model: "gemini-2.0-flash",
-    generationConfig: {
-      responseMimeType: "application/json",
-    },
-  });
 };
 
 const getLocationFilteredRestaurants = (restaurants, location) => {
@@ -147,10 +124,17 @@ exports.getRecommendations = async (req, res) => {
       });
     }
 
+    // Check GEMINI_API_KEY before making external network call
+    if (!process.env.GEMINI_API_KEY) {
+      throw new Error("GEMINI_API_KEY environment variable is not defined");
+    }
+
     const textDataCluster = locationFilteredRestaurants
       .map(
         (r) =>
-          `Restaurant ID: ${r._id.toString()} | Name: ${r.name} | Cuisine Type: ${r.cuisine} | Location: ${r.address} | Meta Description: ${r.description}`,
+          `Restaurant ID: ${r._id.toString()} | Name: ${r.name} | Cuisine Type: ${
+            r.cuisine
+          } | Location: ${r.address} | Meta Description: ${r.description}`,
       )
       .join("\n");
 
@@ -171,7 +155,12 @@ exports.getRecommendations = async (req, res) => {
       (userPreference || "None");
 
     const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-    const model = buildModel(genAI);
+    const model = genAI.getGenerativeModel({
+      model: PRIMARY_MODEL,
+      generationConfig: {
+        responseMimeType: "application/json",
+      },
+    });
 
     const result = await model.generateContent([
       primaryInstruction,
@@ -200,6 +189,8 @@ exports.getRecommendations = async (req, res) => {
           : undefined,
     });
   } catch (error) {
+    console.error("Gemini API Error Trace:", error.message);
+
     const fallback = buildFallbackRecommendations(
       await Restaurant.find({ status: "approved" }),
       req.body || {},
@@ -210,14 +201,10 @@ exports.getRecommendations = async (req, res) => {
         success: true,
         data: fallback,
         message:
-          "Gemini is temporarily busy, so we returned the best local matches from our restaurant catalog.",
+          "Returned best matching restaurants based on your preferences.",
       });
     }
 
-    console.error(
-      "Critical Gemini API Engine Mapping Crash Exception Trace:",
-      error.message,
-    );
     return res.status(500).json({
       success: false,
       message: "Gemini AI recommendation failed",
