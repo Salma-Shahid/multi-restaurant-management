@@ -1,6 +1,4 @@
 require("dotenv").config();
-const dns = require("dns");
-dns.setServers(["8.8.8.8", "8.8.4.4"]); // DNS lookup fix
 
 const express = require("express");
 const cors = require("cors");
@@ -33,7 +31,13 @@ app.get("/", (req, res) => {
   res.send("Multi-Restaurant Table Booking API Running...");
 });
 
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-  console.log(`🔥 Server is blazing on port ${PORT}`);
-});
+// Local development support
+if (process.env.NODE_ENV !== "production") {
+  const PORT = process.env.PORT || 5000;
+  app.listen(PORT, () => {
+    console.log(`🔥 Server is blazing on port ${PORT}`);
+  });
+}
+
+// Export app for Vercel Serverless Function
+module.exports = app;
