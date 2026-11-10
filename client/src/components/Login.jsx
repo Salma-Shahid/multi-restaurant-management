@@ -2,7 +2,9 @@ import { useState, useContext } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { AuthContext } from "../context.jsx";
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || "${API_BASE_URL}";
+const API_BASE_URL =
+  import.meta.env.VITE_API_URL ||
+  "https://multi-restaurant-management.vercel.app/api";
 
 export default function Login() {
   const [email, setEmail] = useState("");

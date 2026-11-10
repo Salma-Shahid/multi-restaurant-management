@@ -2,7 +2,9 @@ import { useState, useEffect, useContext } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { AuthContext } from "../context";
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || "${API_BASE_URL}";
+const API_BASE_URL =
+  import.meta.env.VITE_API_URL ||
+  "https://multi-restaurant-management.vercel.app/api";
 
 export default function BookingForm() {
   const { id: restaurantId } = useParams();
