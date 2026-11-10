@@ -298,13 +298,13 @@ export default function App() {
                 <>
                   <Link
                     to="/login"
-                    className="text-slate-300 hover:text-emerald-400 text-sm font-bold transition tracking-tight"
+                    className="text-black-300 hover:text-emerald-400 text-sm font-bold transition tracking-tight"
                   >
                     Login
                   </Link>
                   <Link
                     to="/signup"
-                    className="bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-bold px-5 py-2.5 rounded-xl transition shadow-md shadow-emerald-950 tracking-tight"
+                    className="bg-emerald-600 hover:bg-emerald-500 text-black text-sm font-bold px-5 py-2.5 rounded-xl transition shadow-md shadow-emerald-950 tracking-tight"
                   >
                     Sign Up
                   </Link>
