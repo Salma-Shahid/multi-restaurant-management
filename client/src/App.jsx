@@ -15,7 +15,11 @@ import BookingForm from "./components/BookingForm";
 import { AuthContext } from "./context.jsx";
 import About from "./components/About";
 import Contact from "./components/Contact";
-import Footer from "./components/Footer"; //  global Footer component
+import Footer from "./components/Footer";
+
+const API_BASE_URL =
+  import.meta.env.VITE_API_URL ||
+  "https://multi-restaurant-management.vercel.app/api";
 
 export default function App() {
   const [user, setUser] = useState(null);
@@ -84,20 +88,17 @@ export default function App() {
     }
 
     try {
-      const response = await fetch(
-        "https://multi-restaurant-management.vercel.app/api/auth/change-password",
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({
-            currentPassword: passwordForm.currentPassword,
-            newPassword: passwordForm.newPassword,
-          }),
+      const response = await fetch(`${API_BASE_URL}/auth/change-password`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
-      );
+        body: JSON.stringify({
+          currentPassword: passwordForm.currentPassword,
+          newPassword: passwordForm.newPassword,
+        }),
+      });
 
       const data = await response.json();
 
@@ -173,27 +174,27 @@ export default function App() {
       </section>
 
       <section className="grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
-        <div className="bg-white p-6 rounded-2xl border border-slate-200/60 shadow-sm space-y-1">
-          <div className="text-3xl font-black text-emerald-600">350+</div>
-          <div className="text-sm font-bold text-slate-800 tracking-tight">
+        <div className="bg-slate-800 p-6 rounded-2xl border border-slate-700/60 shadow-sm space-y-1">
+          <div className="text-3xl font-black text-emerald-400">350+</div>
+          <div className="text-sm font-bold text-white tracking-tight">
             Certified Partner Hubs
           </div>
           <p className="text-xs text-slate-400 font-medium">
             Approved branch ecosystems live monitored
           </p>
         </div>
-        <div className="bg-white p-6 rounded-2xl border border-slate-200/60 shadow-sm space-y-1">
-          <div className="text-3xl font-black text-emerald-600">12k+</div>
-          <div className="text-sm font-bold text-slate-800 tracking-tight">
+        <div className="bg-slate-800 p-6 rounded-2xl border border-slate-700/60 shadow-sm space-y-1">
+          <div className="text-3xl font-black text-emerald-400">12k+</div>
+          <div className="text-sm font-bold text-white tracking-tight">
             Active Monthly Diners
           </div>
           <p className="text-xs text-slate-400 font-medium">
             Verified reservation capacity maps allocation
           </p>
         </div>
-        <div className="bg-white p-6 rounded-2xl border border-slate-200/60 shadow-sm space-y-1">
-          <div className="text-3xl font-black text-emerald-600">0.00%</div>
-          <div className="text-sm font-bold text-slate-800 tracking-tight">
+        <div className="bg-slate-800 p-6 rounded-2xl border border-slate-700/60 shadow-sm space-y-1">
+          <div className="text-3xl font-black text-emerald-400">0.00%</div>
+          <div className="text-sm font-bold text-white tracking-tight">
             Schedule Overlap Failures
           </div>
           <p className="text-xs text-slate-400 font-medium">
@@ -204,7 +205,7 @@ export default function App() {
 
       <section className="space-y-10">
         <div className="text-center max-w-lg mx-auto space-y-2">
-          <h2 className="text-3xl font-black tracking-tight text-slate-800">
+          <h2 className="text-3xl font-black tracking-tight text-white">
             Engineered Platform Workflows
           </h2>
           <p className="text-sm text-slate-400 font-medium">
@@ -214,38 +215,38 @@ export default function App() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          <div className="space-y-3 text-left p-6 bg-white rounded-2xl border border-slate-100 shadow-sm">
-            <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 font-black flex items-center justify-center border border-emerald-100 text-base">
+          <div className="space-y-3 text-left p-6 bg-slate-800 rounded-2xl border border-slate-700/60 shadow-sm">
+            <div className="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-400 font-black flex items-center justify-center border border-emerald-500/20 text-base">
               1
             </div>
-            <h4 className="font-bold text-slate-800 text-lg tracking-tight">
+            <h4 className="font-bold text-white text-lg tracking-tight">
               Establish Account Identity
             </h4>
-            <p className="text-slate-500 text-xs leading-relaxed font-medium">
+            <p className="text-slate-400 text-xs leading-relaxed font-medium">
               Register as either a Customer or a Restaurant Owner to access
               specific control dashboards securely.
             </p>
           </div>
-          <div className="space-y-3 text-left p-6 bg-white rounded-2xl border border-slate-100 shadow-sm">
-            <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 font-black flex items-center justify-center border border-emerald-100 text-base">
+          <div className="space-y-3 text-left p-6 bg-slate-800 rounded-2xl border border-slate-700/60 shadow-sm">
+            <div className="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-400 font-black flex items-center justify-center border border-emerald-500/20 text-base">
               2
             </div>
-            <h4 className="font-bold text-slate-800 text-lg tracking-tight">
+            <h4 className="font-bold text-white text-lg tracking-tight">
               Query Gemini Assistant
             </h4>
-            <p className="text-slate-500 text-xs leading-relaxed font-medium">
+            <p className="text-slate-400 text-xs leading-relaxed font-medium">
               Input spatial parameters or cuisine cravings. Our large language
               model ranks optimal matches instantly.
             </p>
           </div>
-          <div className="space-y-3 text-left p-6 bg-white rounded-2xl border border-slate-100 shadow-sm">
-            <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 font-black flex items-center justify-center border border-emerald-100 text-base">
+          <div className="space-y-3 text-left p-6 bg-slate-800 rounded-2xl border border-slate-700/60 shadow-sm">
+            <div className="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-400 font-black flex items-center justify-center border border-emerald-500/20 text-base">
               3
             </div>
-            <h4 className="font-bold text-slate-800 text-lg tracking-tight">
+            <h4 className="font-bold text-white text-lg tracking-tight">
               Lock Conflict-Free Slots
             </h4>
-            <p className="text-slate-500 text-xs leading-relaxed font-medium">
+            <p className="text-slate-400 text-xs leading-relaxed font-medium">
               Select available seating tables. Node endpoints lock timestamps to
               guarantee absolute slot isolation logs.
             </p>
@@ -257,7 +258,7 @@ export default function App() {
 
   if (loading) {
     return (
-      <div className="text-center mt-20 text-slate-500 font-medium tracking-wide">
+      <div className="text-center mt-20 text-slate-400 font-medium tracking-wide">
         Restoring authenticated secure session pipeline...
       </div>
     );
@@ -266,30 +267,29 @@ export default function App() {
   return (
     <AuthContext.Provider value={{ user, token, login, logout }}>
       <Router>
-        <div className="min-h-screen bg-slate-50 font-sans antialiased">
-          <nav className="bg-white shadow-sm border-b border-slate-100 px-6 py-4 flex justify-between items-center max-w-7xl mx-auto rounded-b-2xl">
+        <div className="min-h-screen bg-slate-900 text-slate-100 font-sans antialiased">
+          <nav className="bg-slate-800 shadow-sm border-b border-slate-700/60 px-6 py-4 flex justify-between items-center max-w-7xl mx-auto rounded-b-2xl">
             <Link
               to="/"
-              className="text-2xl font-black text-emerald-700 tracking-tight flex items-center gap-2"
+              className="text-2xl font-black text-emerald-400 tracking-tight flex items-center gap-2"
             >
               MultiResto
             </Link>
             <div className="flex gap-4 items-center">
               {user ? (
                 <>
-                  {/*  greeting tracking block */}
-                  <span className="text-slate-700 font-semibold text-sm tracking-tight bg-slate-100 px-3 py-1.5 rounded-xl border border-slate-200/60">
+                  <span className="text-slate-300 font-semibold text-sm tracking-tight bg-slate-900 px-3 py-1.5 rounded-xl border border-slate-700">
                     Hello, {user.name}
                   </span>
                   <button
                     onClick={() => setShowPasswordModal(true)}
-                    className="bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-black uppercase tracking-wider px-4 py-2.5 rounded-xl transition cursor-pointer"
+                    className="bg-slate-700 hover:bg-slate-600 text-slate-200 text-xs font-black uppercase tracking-wider px-4 py-2.5 rounded-xl transition cursor-pointer"
                   >
                     Change Password
                   </button>
                   <button
                     onClick={logout}
-                    className="bg-rose-600 hover:bg-rose-700 text-white text-xs font-black uppercase tracking-wider px-4 py-2.5 rounded-xl transition cursor-pointer shadow-sm shadow-rose-100"
+                    className="bg-rose-600 hover:bg-rose-700 text-white text-xs font-black uppercase tracking-wider px-4 py-2.5 rounded-xl transition cursor-pointer shadow-sm shadow-rose-950"
                   >
                     Logout
                   </button>
@@ -298,13 +298,13 @@ export default function App() {
                 <>
                   <Link
                     to="/login"
-                    className="text-slate-600 hover:text-emerald-700 text-sm font-bold transition tracking-tight"
+                    className="text-slate-300 hover:text-emerald-400 text-sm font-bold transition tracking-tight"
                   >
                     Login
                   </Link>
                   <Link
                     to="/signup"
-                    className="bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-bold px-5 py-2.5 rounded-xl transition shadow-md shadow-emerald-100 tracking-tight"
+                    className="bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-bold px-5 py-2.5 rounded-xl transition shadow-md shadow-emerald-950 tracking-tight"
                   >
                     Sign Up
                   </Link>
@@ -314,10 +314,10 @@ export default function App() {
           </nav>
 
           {showPasswordModal && (
-            <div className="fixed inset-0 bg-slate-900/50 flex items-center justify-center z-50 p-4">
-              <div className="w-full max-w-md bg-white rounded-3xl shadow-2xl border border-slate-100 p-6">
+            <div className="fixed inset-0 bg-slate-950/80 flex items-center justify-center z-50 p-4">
+              <div className="w-full max-w-md bg-slate-800 rounded-3xl shadow-2xl border border-slate-700 p-6">
                 <div className="flex justify-between items-center mb-4">
-                  <h3 className="text-xl font-black text-slate-900">
+                  <h3 className="text-xl font-black text-white">
                     Change Password
                   </h3>
                   <button
@@ -326,7 +326,7 @@ export default function App() {
                       setShowPasswordModal(false);
                       setPasswordMessage({ type: "", text: "" });
                     }}
-                    className="text-slate-400 hover:text-slate-700 text-xl font-bold"
+                    className="text-slate-400 hover:text-white text-xl font-bold"
                   >
                     ×
                   </button>
@@ -336,8 +336,8 @@ export default function App() {
                   <div
                     className={`mb-4 rounded-xl border px-3 py-2 text-xs font-semibold ${
                       passwordMessage.type === "success"
-                        ? "bg-emerald-50 border-emerald-200 text-emerald-700"
-                        : "bg-red-50 border-red-200 text-red-600"
+                        ? "bg-emerald-950/50 border-emerald-800 text-emerald-300"
+                        : "bg-red-950/50 border-red-800 text-red-300"
                     }`}
                   >
                     {passwordMessage.text}
@@ -346,7 +346,7 @@ export default function App() {
 
                 <form onSubmit={handlePasswordChange} className="space-y-4">
                   <div>
-                    <label className="block text-slate-700 text-xs font-bold uppercase tracking-wider mb-1">
+                    <label className="block text-slate-300 text-xs font-bold uppercase tracking-wider mb-1">
                       Current Password
                     </label>
                     <input
@@ -358,13 +358,13 @@ export default function App() {
                           currentPassword: e.target.value,
                         })
                       }
-                      className="w-full px-4 py-3 rounded-xl border border-slate-200 outline-none text-sm font-medium focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition"
+                      className="w-full px-4 py-3 rounded-xl bg-slate-900 border border-slate-700 text-white outline-none text-sm font-medium focus:ring-2 focus:ring-emerald-500 transition"
                       required
                     />
                   </div>
 
                   <div>
-                    <label className="block text-slate-700 text-xs font-bold uppercase tracking-wider mb-1">
+                    <label className="block text-slate-300 text-xs font-bold uppercase tracking-wider mb-1">
                       New Password
                     </label>
                     <input
@@ -376,13 +376,13 @@ export default function App() {
                           newPassword: e.target.value,
                         })
                       }
-                      className="w-full px-4 py-3 rounded-xl border border-slate-200 outline-none text-sm font-medium focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition"
+                      className="w-full px-4 py-3 rounded-xl bg-slate-900 border border-slate-700 text-white outline-none text-sm font-medium focus:ring-2 focus:ring-emerald-500 transition"
                       required
                     />
                   </div>
 
                   <div>
-                    <label className="block text-slate-700 text-xs font-bold uppercase tracking-wider mb-1">
+                    <label className="block text-slate-300 text-xs font-bold uppercase tracking-wider mb-1">
                       Confirm New Password
                     </label>
                     <input
@@ -394,14 +394,14 @@ export default function App() {
                           confirmPassword: e.target.value,
                         })
                       }
-                      className="w-full px-4 py-3 rounded-xl border border-slate-200 outline-none text-sm font-medium focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition"
+                      className="w-full px-4 py-3 rounded-xl bg-slate-900 border border-slate-700 text-white outline-none text-sm font-medium focus:ring-2 focus:ring-emerald-500 transition"
                       required
                     />
                   </div>
 
                   <button
                     type="submit"
-                    className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-xl shadow-lg shadow-emerald-100 transition cursor-pointer"
+                    className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 rounded-xl shadow-lg transition cursor-pointer"
                   >
                     Update Password
                   </button>

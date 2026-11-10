@@ -1,6 +1,8 @@
 import { useState, useEffect, useContext } from "react";
 import { AuthContext } from "../context.jsx";
 
+const API_BASE_URL = import.meta.env.VITE_API_URL || "${API_BASE_URL}";
+
 const initialRestaurantForm = {
   name: "",
   description: "",
@@ -27,13 +29,13 @@ export default function OwnerDashboard() {
     const fetchTablesAndBookings = async (restaurantId) => {
       try {
         const resTables = await fetch(
-          `https://multi-restaurant-management.vercel.app/api/restaurants/${restaurantId}/tables`,
+          `${API_BASE_URL}/restaurants/${restaurantId}/tables`,
         );
         const dTables = await resTables.json();
         if (dTables.success) setTables(dTables.data);
 
         const resBookings = await fetch(
-          `https://multi-restaurant-management.vercel.app/api/bookings/restaurant/${restaurantId}`,
+          `${API_BASE_URL}/bookings/restaurant/${restaurantId}`,
           {
             headers: { Authorization: `Bearer ${token}` },
           },
@@ -47,21 +49,15 @@ export default function OwnerDashboard() {
 
     const fetchOwnerRestaurant = async () => {
       try {
-        let response = await fetch(
-          "https://multi-restaurant-management.vercel.app/api/restaurants/me",
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          },
-        );
+        let response = await fetch(`${API_BASE_URL}/restaurants/me`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
         let data = await response.json();
 
         if (!data.success || !data.data) {
-          const fallback = await fetch(
-            "https://multi-restaurant-management.vercel.app/api/restaurants",
-            {
-              headers: { Authorization: `Bearer ${token}` },
-            },
-          );
+          const fallback = await fetch(`${API_BASE_URL}/restaurants`, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
           const fallbackData = await fallback.json();
 
           if (fallbackData.success && fallbackData.data.length > 0) {
@@ -111,13 +107,13 @@ export default function OwnerDashboard() {
   const fetchTablesAndBookingsGlobal = async (restaurantId) => {
     try {
       const resTables = await fetch(
-        `https://multi-restaurant-management.vercel.app/api/restaurants/${restaurantId}/tables`,
+        `${API_BASE_URL}/restaurants/${restaurantId}/tables`,
       );
       const dTables = await resTables.json();
       if (dTables.success) setTables(dTables.data);
 
       const resBookings = await fetch(
-        `https://multi-restaurant-management.vercel.app/api/bookings/restaurant/${restaurantId}`,
+        `${API_BASE_URL}/bookings/restaurant/${restaurantId}`,
         {
           headers: { Authorization: `Bearer ${token}` },
         },
@@ -140,14 +136,11 @@ export default function OwnerDashboard() {
     if (imageFile) formData.append("image", imageFile);
 
     try {
-      const res = await fetch(
-        "https://multi-restaurant-management.vercel.app/api/restaurants",
-        {
-          method: "POST",
-          headers: { Authorization: `Bearer ${token}` },
-          body: formData,
-        },
-      );
+      const res = await fetch(`${API_BASE_URL}/restaurants`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+        body: formData,
+      });
       const data = await res.json();
 
       if (data.success) {
@@ -209,7 +202,7 @@ export default function OwnerDashboard() {
 
     try {
       const res = await fetch(
-        `https://multi-restaurant-management.vercel.app/api/restaurants/${myRestaurant._id}`,
+        `${API_BASE_URL}/restaurants/${myRestaurant._id}`,
         {
           method: "PUT",
           headers: { Authorization: `Bearer ${token}` },
@@ -252,7 +245,7 @@ export default function OwnerDashboard() {
 
     try {
       const res = await fetch(
-        `https://multi-restaurant-management.vercel.app/api/restaurants/${myRestaurant._id}`,
+        `${API_BASE_URL}/restaurants/${myRestaurant._id}`,
         {
           method: "DELETE",
           headers: { Authorization: `Bearer ${token}` },
@@ -281,7 +274,7 @@ export default function OwnerDashboard() {
 
     try {
       const res = await fetch(
-        `https://multi-restaurant-management.vercel.app/api/restaurants/${myRestaurant._id}/tables`,
+        `${API_BASE_URL}/restaurants/${myRestaurant._id}/tables`,
         {
           method: "POST",
           headers: {
@@ -307,17 +300,14 @@ export default function OwnerDashboard() {
 
   const handleUpdateStatus = async (bookingId, currentStatus) => {
     try {
-      const res = await fetch(
-        `https://multi-restaurant-management.vercel.app/api/bookings/${bookingId}/status`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({ status: currentStatus }),
+      const res = await fetch(`${API_BASE_URL}/bookings/${bookingId}/status`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
-      );
+        body: JSON.stringify({ status: currentStatus }),
+      });
       const data = await res.json();
 
       if (!data.success) {

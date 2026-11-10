@@ -1,6 +1,8 @@
-import  { useState, useEffect, useContext } from "react";
+import { useState, useEffect, useContext } from "react";
 import { Link } from "react-router-dom";
 import { AuthContext } from "../context.jsx";
+
+const API_BASE_URL = import.meta.env.VITE_API_URL || "${API_BASE_URL}";
 
 export default function CustomerDashboard() {
   const { token } = useContext(AuthContext);
@@ -17,7 +19,7 @@ export default function CustomerDashboard() {
 
   // 1. Fetch Approved Restaurants
   useEffect(() => {
-    fetch("https://multi-restaurant-management.vercel.app/api/restaurants")
+    fetch(`${API_BASE_URL}/restaurants`)
       .then((res) => res.json())
       .then((data) => {
         if (data.success) setRestaurants(data.data);
@@ -33,17 +35,14 @@ export default function CustomerDashboard() {
     setAiRecommendations([]);
 
     try {
-      const response = await fetch(
-        "https://multi-restaurant-management.vercel.app/api/ai/recommend",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify(aiPreferences),
+      const response = await fetch(`${API_BASE_URL}/ai/recommend`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
-      );
+        body: JSON.stringify(aiPreferences),
+      });
       const data = await response.json();
 
       if (data.success && data.data.length > 0) {
@@ -54,7 +53,7 @@ export default function CustomerDashboard() {
             "No specific matches found by Gemini matching your keywords.",
         );
       }
-    } catch  {
+    } catch {
       setAiMessage(
         "Could not establish connection with Gemini Endpoint server.",
       );

@@ -2,6 +2,8 @@ import { useState, useContext } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { AuthContext } from "../context.jsx";
 
+const API_BASE_URL = import.meta.env.VITE_API_URL || "${API_BASE_URL}";
+
 export default function Signup() {
   const [formData, setFormData] = useState({
     name: "",
@@ -18,14 +20,11 @@ export default function Signup() {
     e.preventDefault();
     setError("");
     try {
-      const response = await fetch(
-        "https://multi-restaurant-management.vercel.app/api/auth/signup",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(formData),
-        },
-      );
+      const response = await fetch(`${API_BASE_URL}/auth/signup`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      });
       const data = await response.json();
 
       if (data.success) {
