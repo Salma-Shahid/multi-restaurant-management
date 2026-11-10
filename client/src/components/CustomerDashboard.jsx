@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from "react";
+import  { useState, useEffect, useContext } from "react";
 import { Link } from "react-router-dom";
 import { AuthContext } from "../context.jsx";
 
@@ -17,7 +17,7 @@ export default function CustomerDashboard() {
 
   // 1. Fetch Approved Restaurants
   useEffect(() => {
-    fetch("http://localhost:5000/api/restaurants")
+    fetch("https://multi-restaurant-management.vercel.app/api/restaurants")
       .then((res) => res.json())
       .then((data) => {
         if (data.success) setRestaurants(data.data);
@@ -33,14 +33,17 @@ export default function CustomerDashboard() {
     setAiRecommendations([]);
 
     try {
-      const response = await fetch("http://localhost:5000/api/ai/recommend", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
+      const response = await fetch(
+        "https://multi-restaurant-management.vercel.app/api/ai/recommend",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify(aiPreferences),
         },
-        body: JSON.stringify(aiPreferences),
-      });
+      );
       const data = await response.json();
 
       if (data.success && data.data.length > 0) {
@@ -51,7 +54,7 @@ export default function CustomerDashboard() {
             "No specific matches found by Gemini matching your keywords.",
         );
       }
-    } catch (error) {
+    } catch  {
       setAiMessage(
         "Could not establish connection with Gemini Endpoint server.",
       );
@@ -63,7 +66,7 @@ export default function CustomerDashboard() {
   return (
     <div className="space-y-10 mt-4">
       {/*  Professional Emerald Gradient AI Assistant Section */}
-      <section className="bg-gradient-to-r from-emerald-800 to-teal-900 rounded-3xl p-8 text-white shadow-xl border border-emerald-950">
+      <section className="`bg-gradient-to-r` from-emerald-800 to-teal-900 rounded-3xl p-8 text-white shadow-xl border border-emerald-950">
         <div className="max-w-2xl">
           <h2 className="text-3xl font-extrabold mb-1 text-white tracking-tight flex items-center gap-2">
             ✨ Gemini Concierge Assistant
@@ -118,7 +121,7 @@ export default function CustomerDashboard() {
         {(aiRecommendations.length > 0 || aiMessage) && (
           <div className="mt-6 bg-slate-900/60 rounded-2xl p-6 border border-white/5 space-y-4">
             <h3 className="font-bold text-sm tracking-widest text-emerald-400 uppercase">
-               Smart Matching Models Suggestions:
+              Smart Matching Models Suggestions:
             </h3>
 
             {aiMessage && (

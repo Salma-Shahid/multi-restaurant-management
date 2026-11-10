@@ -1,5 +1,3 @@
-import React from "react";
-
 export default function About() {
   return (
     <div className="max-w-5xl mx-auto space-y-16 py-10 text-left animate-fade-in">
@@ -41,11 +39,11 @@ export default function About() {
           />
 
           {/* Subtle corporate dark overlay blend effect */}
-          <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-slate-950/20 to-transparent pointer-events-none"></div>
+          <div className="absolute inset-0 `bg-gradient-to-t` from-slate-950/80 via-slate-950/20 to-transparent pointer-events-none"></div>
 
           {/* Floating descriptive caption on top of the image layout */}
           <div className="absolute bottom-6 left-6 right-6 z-10 text-left">
-            <h4 className="!text-white font-bold text-lg tracking-tight">
+            <h4 className="text-white font-bold text-lg tracking-tight">
               Premium Culinary Network
             </h4>
             <p className="text-slate-300 text-xs font-medium mt-0.5">
@@ -61,14 +59,14 @@ export default function About() {
         <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none"></div>
 
         <div className="relative z-10 space-y-6">
-          <h3 className="text-xl font-extrabold !text-emerald-400 tracking-tight">
+          <h3 className="text-xl font-extrabold text-emerald-400 tracking-tight">
             The Precision Engineering Core Principles
           </h3>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 pt-2">
             <div className="space-y-2">
               <div className="text-xl">🛡️</div>
-              <h4 className="font-bold text-sm !text-white tracking-tight">
+              <h4 className="font-bold text-sm text-white tracking-tight">
                 Interval Isolation
               </h4>
               <p className="text-slate-400 text-xs leading-relaxed font-medium">
@@ -78,7 +76,7 @@ export default function About() {
             </div>
             <div className="space-y-2">
               <div className="text-xl">🎯</div>
-              <h4 className="font-bold text-sm !text-white tracking-tight">
+              <h4 className="font-bold text-sm text-white tracking-tight">
                 Context Enrichment
               </h4>
               <p className="text-slate-400 text-xs leading-relaxed font-medium">
@@ -88,7 +86,7 @@ export default function About() {
             </div>
             <div className="space-y-2">
               <div className="text-xl">👑</div>
-              <h4 className="font-bold text-sm !text-white tracking-tight">
+              <h4 className="font-bold text-sm text-white tracking-tight">
                 Tenant Sovereignty
               </h4>
               <p className="text-slate-400 text-xs leading-relaxed font-medium">

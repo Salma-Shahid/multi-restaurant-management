@@ -33,15 +33,20 @@ export default function App() {
   });
 
   useEffect(() => {
-    const savedUser = localStorage.getItem("user");
-    const savedToken = localStorage.getItem("token");
+    try {
+      const savedUser = localStorage.getItem("user");
+      const savedToken = localStorage.getItem("token");
 
-    if (savedUser && savedToken) {
-      setUser(JSON.parse(savedUser));
-      setToken(savedToken);
+      if (savedUser && savedToken) {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setUser(JSON.parse(savedUser));
+        setToken(savedToken);
+      }
+    } catch (err) {
+      console.error("Failed to load session from storage:", err);
+    } finally {
+      setLoading(false);
     }
-
-    setLoading(false);
   }, []);
 
   const login = (userData, userToken) => {
@@ -80,7 +85,7 @@ export default function App() {
 
     try {
       const response = await fetch(
-        "http://localhost:5000/api/auth/change-password",
+        "https://multi-restaurant-management.vercel.app/api/auth/change-password",
         {
           method: "PUT",
           headers: {
@@ -116,7 +121,7 @@ export default function App() {
           text: data.message || "Password change failed.",
         });
       }
-    } catch (error) {
+    } catch {
       setPasswordMessage({
         type: "error",
         text: "Unable to connect to the server for password update.",
@@ -126,7 +131,7 @@ export default function App() {
 
   const renderLandingPage = () => (
     <div className="space-y-20 py-8 animate-fade-in">
-      <section className="bg-gradient-to-br from-slate-900 via-slate-800 to-emerald-950 rounded-3xl p-10 md:p-16 text-white shadow-xl relative overflow-hidden flex flex-col md:flex-row items-center justify-between gap-12 border border-slate-950">
+      <section className="`bg-gradient-to-br` from-slate-900 via-slate-800 to-emerald-950 rounded-3xl p-10 md:p-16 text-white shadow-xl relative overflow-hidden flex flex-col md:flex-row items-center justify-between gap-12 border border-slate-950">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(16,185,129,0.08),transparent_50%)]"></div>
 
         <div className="max-w-xl space-y-6 text-left relative z-10">

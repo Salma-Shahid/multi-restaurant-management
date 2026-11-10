@@ -1,14 +1,20 @@
-import React, { useState, useEffect, useContext } from "react";
+import { useState, useEffect, useContext } from "react";
 import { AuthContext } from "../context";
+
+const API_BASE_URL =
+  import.meta.env.VITE_API_URL ||
+  "https://multi-restaurant-management.vercel.app/api";
 
 export default function AdminDashboard() {
   const { token } = useContext(AuthContext);
   const [allStores, setAllStores] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  //  registered restaurants fetch 
+  // Registered restaurants fetch
   useEffect(() => {
-    fetch("http://localhost:5000/api/restaurants/admin/all", {
+    if (!token) return;
+
+    fetch(`${API_BASE_URL}/restaurants/admin/all`, {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then((res) => res.json())
@@ -22,20 +28,17 @@ export default function AdminDashboard() {
       });
   }, [token]);
 
-  // Restaurant  approve  handler
+  // Restaurant approve/reject handler
   const handleAction = async (id, targetStatus) => {
     try {
-      const res = await fetch(
-        `http://localhost:5000/api/restaurants/${id}/approve`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({ status: targetStatus }),
+      const res = await fetch(`${API_BASE_URL}/restaurants/${id}/approve`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
-      );
+        body: JSON.stringify({ status: targetStatus }),
+      });
       const d = await res.json();
       if (d.success) {
         // State update to reflect the new status without refetching
@@ -62,7 +65,7 @@ export default function AdminDashboard() {
     <div className="max-w-4xl mx-auto bg-white p-8 rounded-3xl shadow-xl border border-gray-100 mt-6">
       <div className="border-b border-gray-100 pb-4 mb-6">
         <h2 className="text-3xl font-extrabold text-gray-800 flex items-center gap-2">
-           Super Admin Console
+          Super Admin Console
         </h2>
         <p className="text-gray-500 text-sm">
           Review incoming restaurant registration requests, verify details, and
@@ -72,8 +75,8 @@ export default function AdminDashboard() {
 
       {allStores.length === 0 ? (
         <p className="text-gray-400 text-center py-10 text-sm">
-          No pending restaurant registrations at the moment. All systems are
-          up to date.
+          No pending restaurant registrations at the moment. All systems are up
+          to date.
         </p>
       ) : (
         <div className="divide-y divide-gray-100">

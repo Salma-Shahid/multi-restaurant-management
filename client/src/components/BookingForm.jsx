@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from "react";
+import { useState, useEffect, useContext } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { AuthContext } from "../context";
 
@@ -21,7 +21,9 @@ export default function BookingForm() {
 
   // Fetch available tables for this restaurant
   useEffect(() => {
-    fetch(`http://localhost:5000/api/restaurants/${restaurantId}/tables`)
+    fetch(
+      `https://multi-restaurant-management.vercel.app/api/restaurants/${restaurantId}/tables`,
+    )
       .then((res) => res.json())
       .then((data) => {
         if (data.success) setTables(data.data);
@@ -35,14 +37,17 @@ export default function BookingForm() {
     setMessage({ text: "", isError: false });
 
     try {
-      const response = await fetch("http://localhost:5000/api/bookings", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
+      const response = await fetch(
+        "https://multi-restaurant-management.vercel.app/api/bookings",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ restaurantId, ...formData }),
         },
-        body: JSON.stringify({ restaurantId, ...formData }),
-      });
+      );
       const data = await response.json();
 
       if (data.success) {
@@ -54,7 +59,7 @@ export default function BookingForm() {
           isError: true,
         });
       }
-    } catch (err) {
+    } catch  {
       setMessage({ text: "Server connection timeout error.", isError: true });
     } finally {
       setLoading(false);

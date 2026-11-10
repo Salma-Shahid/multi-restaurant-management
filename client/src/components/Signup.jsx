@@ -1,4 +1,4 @@
-import React, { useState, useContext } from "react";
+import { useState, useContext } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { AuthContext } from "../context.jsx";
 
@@ -18,11 +18,14 @@ export default function Signup() {
     e.preventDefault();
     setError("");
     try {
-      const response = await fetch("http://localhost:5000/api/auth/signup", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
-      });
+      const response = await fetch(
+        "https://multi-restaurant-management.vercel.app/api/auth/signup",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(formData),
+        },
+      );
       const data = await response.json();
 
       if (data.success) {
@@ -33,7 +36,7 @@ export default function Signup() {
           data.message || "Registration failed. Please check your data fields.",
         );
       }
-    } catch (error) {
+    } catch {
       setError("Internal server connection timeout error.");
     }
   };
